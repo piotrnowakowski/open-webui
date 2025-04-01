@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  open-webui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: open-webui:prod
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "${WEBUI_PORT:-3000}:8080"
+    volumes:
+      - open-webui-data:/app/backend/data
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-https://api.openai.com/v1}
+      - WEBUI_SECRET_KEY=${WEBUI_SECRET_KEY}
+      - ENABLE_OLLAMA_API=false
+      - OLLAMA_BASE_URL=
+      # Security settings
+      - ENABLE_SIGNUP=false
+      - ENABLE_LOGIN_FORM=true
+      - ENABLE_API_KEY=true
+      - ENABLE_API_KEY_ENDPOINT_RESTRICTIONS=true
+      # Optional: Configure admin user
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      # Optional: Configure allowed domains for CORS
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-http://localhost:3000}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  open-webui-data:
+    name: open-webui-data 
